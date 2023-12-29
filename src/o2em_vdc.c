@@ -19,7 +19,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "vmachine.h"
-#include "config.h"
+#include "o2em_config.h"
 #include "keyboard.h"
 #include "cset.h"
 #include "cpu.h"
@@ -32,6 +32,9 @@
 #include "audio.h"
 #include "voice.h"
 
+#ifdef TARGET_GNW
+#include "gw_malloc.h"
+#endif
 
 #define COL_SP0   0x01
 #define COL_SP1   0x02
@@ -44,8 +47,6 @@
 
 #define X_START		8
 #define Y_START		24
-
-typedef APALETTE PALETTE[256];
 
 static long colortable[2][16]={
 	/* O2 palette */
@@ -61,14 +62,20 @@ static long colortable[2][16]={
 /* Collision buffer */
 static uint8_t *col = NULL;
 
-static PALETTE colors;
+static APALETTE colors[256];
 
 /* The pointer to the graphics buffer */
 static uint8_t *vscreen           = NULL;
 
 static ALLEGRO_BITMAP *bmp                = NULL;
 static ALLEGRO_BITMAP *bmpcache           = NULL;
-static int cached_lines[MAXLINES];
+#ifdef TARGET_GNW
+static ALLEGRO_BITMAP local_bmp;
+static uint8_t bmp_buff[BMPW*BMPH];
+static ALLEGRO_BITMAP local_bmpcache;
+static uint8_t bmpcache_buff[BMPW*BMPH];
+#endif
+static bool cached_lines[MAXLINES];
 
 uint8_t coltab[256];
 
@@ -452,13 +459,16 @@ void clearscr(void)
 
 
 
-extern uint16_t mbmp[TEX_WIDTH  * TEX_HEIGHT];
+#ifndef TARGET_GNW
+extern uint16_t *mbmp;//[TEX_WIDTH  * TEX_HEIGHT];
+#endif
 
 void retro_blit(void)
 {
+#ifndef TARGET_GNW
 	int i,j;
 	unsigned  char ind;
-	uint16_t *outp = &mbmp[0];
+	uint16_t *outp = mbmp;
 	uint8_t  *inp  = &bmp->line[0];
 
 	for(i=0;i<250;i++)
@@ -475,13 +485,31 @@ void retro_blit(void)
 		}
 		outp+=	(TEX_WIDTH-340);
 	}
+#else
+extern void gnw_videopack_blit(uint8_t *input, APALETTE *palette);
+
+   gnw_videopack_blit(bmp->line, colors);
+/*	for(i=0;i<240;i++)
+   {
+		for(j=0;j<320;j++)
+      {
+			ind=inp[i*340 + j];
+			(*outp++) = RGB565(colors[ind].r, colors[ind].g, colors[ind].b);
+		}
+//		outp+=	320;
+	}*/
+#endif
 }
 
 void retro_destroybmp(void)
 {
+#ifndef TARGET_GNW
    destroy_bitmap(bmp);
+#endif
    bmp = NULL;
+#ifndef TARGET_GNW
    destroy_bitmap(bmpcache);
+#endif
    bmpcache = NULL;
 }
 
@@ -531,8 +559,10 @@ void clear_collision(void)
 
 
 void close_display(void) {
+#ifndef TARGET_GNW
    if (col)
       free(col);
+#endif
    col = NULL;
 }
 
@@ -553,20 +583,42 @@ void display_bg(void)
 void init_display(void)
 {
    create_cmap();
+#ifndef TARGET_GNW
    bmp = create_bitmap(BMPW,BMPH);
    bmpcache = create_bitmap(BMPW,BMPH);
 
    if ((!bmp) || (!bmpcache)) {
       exit(EXIT_FAILURE);
    }
+#else
+   bmp = &local_bmp;
+   bmp->line  = bmp_buff;
+   bmp->w     = BMPW;
+   bmp->h     = BMPH;
+   bmp->pitch = BMPW;
+   bmp->depth = 1;  
+
+   bmpcache = &local_bmpcache;
+   bmpcache->line  = bmpcache_buff;
+   bmpcache->w     = BMPW;
+   bmpcache->h     = BMPH;
+   bmpcache->pitch = BMPW;
+   bmpcache->depth = 1;  
+
+#endif
+
    vscreen = (uint8_t *) &bmp->line[0];
 
+#ifndef TARGET_GNW
    col = (uint8_t *)malloc(BMPW*BMPH);
    if (!col)
    {
       free(vscreen);
       exit(EXIT_FAILURE);
    }
+#else
+	col = ahb_malloc(BMPW*BMPH);
+#endif
    memset(col,0,BMPW*BMPH);
 
    grmode();

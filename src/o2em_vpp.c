@@ -27,6 +27,11 @@
 static uint8_t LumReg = 0xff, TraReg = 0xff;
 static ALLEGRO_BITMAP *vppbmp = NULL;
 static uint8_t *colplus = NULL;
+#ifdef TARGET_GNW
+static ALLEGRO_BITMAP local_vppbmp;
+static uint8_t vppbmp_buff[320*250];
+static uint8_t local_colplus[BMPW*BMPH];
+#endif
 static int vppon = 1;
 static int vpp_cx = 0;
 static int vpp_cy = 0;
@@ -470,11 +475,23 @@ void init_vpp(void)
 {
 	int i,j,k;
 	
+#ifndef TARGET_GNW
 	if (!vppbmp) vppbmp = create_bitmap(320,250);
 	if (!colplus) colplus = (uint8_t *)malloc(BMPW*BMPH);
 
 	if ((!vppbmp) || (!colplus))
 		exit(EXIT_FAILURE);
+#else
+	vppbmp = &local_vppbmp;
+	vppbmp->line  = vppbmp_buff;
+	vppbmp->w     = 320;
+	vppbmp->h     = 250;
+	vppbmp->pitch = 320;
+	vppbmp->depth = 1;  
+
+	colplus = local_colplus;
+#endif
+
 	memset(colplus,0,BMPW*BMPH);
 
 	LumReg = TraReg = 0xff;
@@ -501,10 +518,14 @@ void init_vpp(void)
 
 void close_vpp(void)
 {
+#ifndef TARGET_GNW
 	destroy_bitmap(vppbmp);
+#endif
 	vppbmp = NULL;
 
+#ifndef TARGET_GNW
 	if (colplus)
 		free(colplus);
+#endif
 	colplus = NULL;
 }

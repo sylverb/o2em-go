@@ -15,7 +15,7 @@
 #include "libretro_core_options.h"
 
 #include "audio.h"
-#include "config.h"
+#include "o2em_config.h"
 #include "cpu.h"
 #include "keyboard.h"
 #include "score.h"

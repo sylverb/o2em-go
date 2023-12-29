@@ -28,7 +28,7 @@
 #define make_psw() {psw = (cy << 7) | ac | f0 | bs | 0x08; psw = psw | ((sp - 8) >> 1);}
 #define illegal(o) {}
 #define undef(i) { }
-#define ROM(adr) (rom[(adr) & 0xfff])
+#define ROM(adr) (o2em_rom[(adr) & 0xfff])
 
 uint8_t acc;
 uint16_t pc;

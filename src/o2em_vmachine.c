@@ -22,7 +22,7 @@
 #include "audio.h"
 #include "cpu.h"
 #include "keyboard.h"
-#include "config.h"
+#include "o2em_config.h"
 #include "vdc.h" 
 #include "vpp.h"
 #include "voice.h"
@@ -63,14 +63,14 @@ int tweakedaudio    = 0;
 
 uint8_t rom_table[8][4096];
 
-uint8_t ram[64 + 256];
+uint8_t o2em_ram[64 + 256];
 uint8_t extROM[1024];
 uint8_t VDCwrite[256];
 uint8_t ColorVector[MAXLINES];
 uint8_t AudioVector[MAXLINES];
-uint8_t *intRAM     = ram;
-uint8_t *extRAM     = &ram[64];
-uint8_t *rom        = NULL;
+uint8_t *intRAM     = o2em_ram;
+uint8_t *extRAM     = &o2em_ram[64];
+uint8_t *o2em_rom        = NULL;
 uint8_t *megarom    = NULL;
 
 int key2[128];
@@ -435,7 +435,7 @@ void init_system(void)
 
 void init_roms(void)
 {
-   rom      = rom_table[0];
+   o2em_rom = rom_table[0];
    romlatch = 0;
 }
 
@@ -459,11 +459,11 @@ void write_p1(uint8_t d)
    }
    p1 = d;
    if (app_data.bank == 2)
-      rom = rom_table[~p1 & 0x01];
+      o2em_rom = rom_table[~p1 & 0x01];
    else if (app_data.bank == 3)
-      rom = rom_table[~p1 & 0x03];
+      o2em_rom = rom_table[~p1 & 0x03];
    else if (app_data.bank == 4)
-      rom = rom_table[(p1 & 1)?0:romlatch];
+      o2em_rom = rom_table[(p1 & 1)?0:romlatch];
 }
 
 uint8_t read_P2(void)
@@ -681,7 +681,7 @@ void ext_write(uint8_t dat, uint16_t adr)
          if (app_data.bank == 4)
          {
             romlatch = (~dat) & 7;
-            rom=rom_table[(p1 & 1)?0:romlatch];
+            o2em_rom=rom_table[(p1 & 1)?0:romlatch];
          }
 
          /* Handle The Voice */

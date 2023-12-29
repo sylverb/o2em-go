@@ -19,7 +19,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "cpu.h"
-#include "config.h"
+#include "o2em_config.h"
 #include "vmachine.h"
 #include "audio.h"
 

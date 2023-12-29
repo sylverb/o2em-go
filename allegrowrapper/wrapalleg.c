@@ -14,6 +14,7 @@ void alleg_downcase(char *p)
    }
 }
 
+#ifndef TARGET_GNW
 ALLEGRO_BITMAP *create_bitmap(int w,int h)
 {
    ALLEGRO_BITMAP *buff = (ALLEGRO_BITMAP*)
@@ -44,7 +45,7 @@ int destroy_bitmap(ALLEGRO_BITMAP *buff)
 
    return 0;
 }
-
+#endif
 
 void rect(ALLEGRO_BITMAP  *buff,int x,int y,int x2,int y2,unsigned  char color)       { }
 void rectfill(ALLEGRO_BITMAP  *buff,int x,int y,int x2,int y2,unsigned  char color)   { }

@@ -35,7 +35,7 @@ extern uint8_t extROM[];
 extern uint8_t VDCwrite[256];
 extern uint8_t ColorVector[MAXLINES];
 extern uint8_t AudioVector[MAXLINES];
-extern uint8_t *rom;
+extern uint8_t *o2em_rom;
 extern uint8_t *megarom;
 
 extern int frame;
